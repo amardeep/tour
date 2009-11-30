@@ -1,0 +1,33 @@
+<?xml version="1.0" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+  "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+
+<svg width="1000px" height="1000px" viewBox="-25000 -25000 50000 50000"
+     xmlns="http://www.w3.org/2000/svg" version="1.1">
+
+  <title>Example quad01 - quadratic Bezier commands in path data</title>
+
+  <rect x="-23469" y="-19540" width="45328" height="39314"
+        fill="none" stroke="blue" stroke-width="15" />
+
+<path d=" M-3603,4592 Q0,0 3879,403 T-882,14193 T-3526,8334 T4899,9416 T-3711,10251 T8965,5690 T-6061,10869 T13835,7236 T4744,-246 T11238,-6553 T5177,-13990 T19493,2923 T-5783,2536 T261,959 " 
+ fill="none" stroke="red" stroke-width="30"  /> 
+<g fill="black">
+<circle cx="0" cy="0" r="200"/>
+<circle cx="-3603" cy="4592" r="100"/>
+<circle cx="3879" cy="403" r="100"/>
+<circle cx="-882" cy="14193" r="100"/>
+<circle cx="-3526" cy="8334" r="100"/>
+<circle cx="4899" cy="9416" r="100"/>
+<circle cx="-3711" cy="10251" r="100"/>
+<circle cx="8965" cy="5690" r="100"/>
+<circle cx="-6061" cy="10869" r="100"/>
+<circle cx="13835" cy="7236" r="100"/>
+<circle cx="4744" cy="-246" r="100"/>
+<circle cx="11238" cy="-6553" r="100"/>
+<circle cx="5177" cy="-13990" r="100"/>
+<circle cx="19493" cy="2923" r="100"/>
+<circle cx="-5783" cy="2536" r="100"/>
+<circle cx="261" cy="959" r="100"/>
+</g>
+</svg>

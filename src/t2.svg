@@ -1,0 +1,106 @@
+<?xml version="1.0" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+  "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+
+<svg width="1000px" height="1000px" viewBox="-25000 -25000 50000 50000"
+     xmlns="http://www.w3.org/2000/svg" version="1.1">
+
+  <title>Example quad01 - quadratic Bezier commands in path data</title>
+
+  <rect x="-23469" y="-19540" width="45328" height="39314"
+        fill="none" stroke="blue" stroke-width="15" />
+
+<path d="M-3603, 4592 Q-3603,4592 -3603,4592 T-2791,4008 T-245,2176 T2300,345 T3879,403 T4319,1989 T2381,7595 T443,13202 T-882,14193 T-2283,13323 T-3000,11688 T-3718,10053 T-3526,8334 T-1937,7642 T991,7973 T3920,8303 T4899,9416 T3888,10512 T695,10821 T-2496,11130 T-3711,10251 T-2949,9079 T2683,7954 T8316,6829 T8965,5690 T7687,5072 T1159,7324 T-5369,9575 T-6061,10869 T-4824,11652 T3888,10020 T12600,8388 T13835,7236 T13226,5758 T9435,3510 T5645,1263 T4744,-246 T5535,-1799 T7941,-3399 T10347,-5000 T11238,-6553 T10531,-8195 T7851,-10451 T5172,-12706 T5177,-13990 T6589,-13863 T12933,-6304 T19277,1253 T19493,2923 T18065,3814 T6701,3677 T-4663,3540 T-5783,2536 T-4907,1448 T-2820,1251 T-734,1053 " 
+ fill="none" stroke="red" stroke-width="40"  /> 
+<g fill="black">
+<circle cx="-3603" cy="4592" r="130"/>
+<circle cx="-3603" cy="4592" r="130"/>
+<circle cx="3879" cy="403" r="130"/>
+<circle cx="-882" cy="14193" r="130"/>
+<circle cx="-3526" cy="8334" r="130"/>
+<circle cx="4899" cy="9416" r="130"/>
+<circle cx="-3711" cy="10251" r="130"/>
+<circle cx="8965" cy="5690" r="130"/>
+<circle cx="-6061" cy="10869" r="130"/>
+<circle cx="13835" cy="7236" r="130"/>
+<circle cx="4744" cy="-246" r="130"/>
+<circle cx="11238" cy="-6553" r="130"/>
+<circle cx="5177" cy="-13990" r="130"/>
+<circle cx="19493" cy="2923" r="130"/>
+<circle cx="-5783" cy="2536" r="130"/>
+</g>
+<g fill="#9f9">
+<circle cx="-3603" cy="4592" r="100"/>
+<circle cx="3111" cy="-238" r="100"/>
+<circle cx="4646" cy="1044" r="100"/>
+<circle cx="116" cy="14147" r="100"/>
+<circle cx="-1880" cy="14238" r="100"/>
+<circle cx="-4121" cy="9137" r="100"/>
+<circle cx="-2930" cy="7530" r="100"/>
+<circle cx="4914" cy="8416" r="100"/>
+<circle cx="4883" cy="10415" r="100"/>
+<circle cx="-3491" cy="11226" r="100"/>
+<circle cx="-3930" cy="9275" r="100"/>
+<circle cx="9297" cy="6633" r="100"/>
+<circle cx="8632" cy="4746" r="100"/>
+<circle cx="-6314" cy="9901" r="100"/>
+<circle cx="-5807" cy="11836" r="100"/>
+<circle cx="13583" cy="8203" r="100"/>
+<circle cx="14086" cy="6268" r="100"/>
+<circle cx="4785" cy="753" r="100"/>
+<circle cx="4702" cy="-1245" r="100"/>
+<circle cx="11179" cy="-5554" r="100"/>
+<circle cx="11296" cy="-7551" r="100"/>
+<circle cx="4407" cy="-13351" r="100"/>
+<circle cx="5946" cy="-14628" r="100"/>
+<circle cx="19920" cy="2019" r="100"/>
+<circle cx="19065" cy="3826" r="100"/>
+<circle cx="-5663" cy="3528" r="100"/>
+<circle cx="-5902" cy="1543" r="100"/>
+<circle cx="261" cy="959" r="100"/>
+</g>
+<g fill="gray">
+<circle cx="-2791" cy="4008" r="130"/>
+<circle cx="-245" cy="2176" r="130"/>
+<circle cx="2300" cy="345" r="130"/>
+<circle cx="4319" cy="1989" r="130"/>
+<circle cx="2381" cy="7595" r="130"/>
+<circle cx="443" cy="13202" r="130"/>
+<circle cx="-2283" cy="13323" r="130"/>
+<circle cx="-3000" cy="11688" r="130"/>
+<circle cx="-3718" cy="10053" r="130"/>
+<circle cx="-1937" cy="7642" r="130"/>
+<circle cx="991" cy="7973" r="130"/>
+<circle cx="3920" cy="8303" r="130"/>
+<circle cx="3888" cy="10512" r="130"/>
+<circle cx="695" cy="10821" r="130"/>
+<circle cx="-2496" cy="11130" r="130"/>
+<circle cx="-2949" cy="9079" r="130"/>
+<circle cx="2683" cy="7954" r="130"/>
+<circle cx="8316" cy="6829" r="130"/>
+<circle cx="7687" cy="5072" r="130"/>
+<circle cx="1159" cy="7324" r="130"/>
+<circle cx="-5369" cy="9575" r="130"/>
+<circle cx="-4824" cy="11652" r="130"/>
+<circle cx="3888" cy="10020" r="130"/>
+<circle cx="12600" cy="8388" r="130"/>
+<circle cx="13226" cy="5758" r="130"/>
+<circle cx="9435" cy="3510" r="130"/>
+<circle cx="5645" cy="1263" r="130"/>
+<circle cx="5535" cy="-1799" r="130"/>
+<circle cx="7941" cy="-3399" r="130"/>
+<circle cx="10347" cy="-5000" r="130"/>
+<circle cx="10531" cy="-8195" r="130"/>
+<circle cx="7851" cy="-10451" r="130"/>
+<circle cx="5172" cy="-12706" r="130"/>
+<circle cx="6589" cy="-13863" r="130"/>
+<circle cx="12933" cy="-6304" r="130"/>
+<circle cx="19277" cy="1253" r="130"/>
+<circle cx="18065" cy="3814" r="130"/>
+<circle cx="6701" cy="3677" r="130"/>
+<circle cx="-4663" cy="3540" r="130"/>
+<circle cx="-4907" cy="1448" r="130"/>
+<circle cx="-2820" cy="1251" r="130"/>
+<circle cx="-734" cy="1053" r="130"/>
+</g>
+</svg>
