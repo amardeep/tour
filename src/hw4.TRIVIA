@@ -1,0 +1,31 @@
+The height field for homework #4 was extracted from U.S. Geological Survey
+digital elevation models with a lateral resolution of 3 arc-seconds and
+a vertical resolution of 1 meter.  This means one sample approximately
+every 46 meters - a total of 11,520,000 points for the region given.
+This data was decimated by random sampling, biased toward preserving
+coastline and areas of high curvature.  All of the horizontal positions
+have been scaled down by a factor of 3 to make the hills more pronounced
+and interesting.
+
+The sights on your tour are the following:
+
+1)  San Francisco International Airport.  Take off!
+2)  Paramount's Great America Theme Park in Santa Clara.  You will buzz over
+     the new Drop Zone.
+3)  Marine World Africa USA in Vallejo.  Watch out for giraffes.
+4)  Alcatraz.  All SF tourists have to visit The Rock, don't they?
+5)  Mount Diablo.  With any luck, you will just make it over the peak.
+6)  Pixar Animation Studios in Richmond.  Shape-modeling heaven.
+7)  Lawrence Livermore National Laboratories.  Don't fly too low - this is
+     where they design H-bombs.
+8)  Industrial Light and Magic in San Rafael.  Actually this is just their
+     post office box - the real address is top secret.
+9)  Motel 6 in Tracy, CA.  Don't ask.
+10) San Jose International Airport.   Refuel.
+11) The Gilroy Garlic Festival.  Fly just above the smell.
+12) Monterey Bay Aquarium.  Buzz the sea lions.
+13) The middle of nowhere, in Stanislaus County, CA.  I don't know why.
+14) Half Moon Bay Airport.  You'll need to refuel again after flying to the
+     middle of nowhere and back.
+15) Sweet Hall, Stanford University.  Make a smooth landing on the roof,
+     and try not to hit your fellow students.
