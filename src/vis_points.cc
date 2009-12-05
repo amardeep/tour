@@ -103,93 +103,6 @@ void ReadTriangles(Geometry* geo) {
 }
 
 
-// Reads bezier control points from file
-void ReadControl(Vec3Array* v) {
-  ifstream fin("tour3.txt");
-  double x, y, z;
-  char buffer[100];
-  fin >> buffer;
-  fin >> buffer;
-  fin >> buffer;
-
-  while (fin >> x >> y) {
-    v->push_back(Vec3(x, y, 0));
-  }
-  cout << "Num control vertices = " << v->size() << endl;
-}
-
-
-// Return height of terrain at a poing
-Vec3d getHeight(osg::Node* scene, double x, double y){
-  BoundingSphere bs = scene->getBound();
-  Vec3d start = Vec3d(x, y, 8 * bs.radius());
-  Vec3d end = Vec3d(x, y, -8 * bs.radius());
-
-  using osgSim::LineOfSight;
-  osgSim::LineOfSight los;
-  los.addLOS(start, end);;
-  los.computeIntersections(scene);
-  const LineOfSight::Intersections& intersections = los.getIntersections(0);
-  for (LineOfSight::Intersections::const_iterator itr = intersections.begin();
-       itr != intersections.end(); ++itr) {
-      return *itr;
-  }
-}
-
-
-double L2Norm(Vec3 x){
- return (sqrt(pow(x.x(), 2) +
-              pow(x.y(), 2) +
-              pow(x.z(), 2)));
-}
-
-
-bool isLinear(Vec3 x, Vec3 y, Vec3 z){
-  Vec3 slope1, slope2;
-  double diff;
-  slope1= y - x,
-  slope2= z - y;
-  slope1= slope1 / (L2Norm(slope1));
-  slope2= slope2 / (L2Norm(slope2));
-  diff=L2Norm(slope1-slope2);
-  return (diff < .000001);
-}
-
-//Returns a Vec3 with (slope1, slope2, height), Slope 1 is the max slope 
-//from control point P1 to a terrain point, slope2 is the max slope from
-//P3, height is the maximum height along the segment.  
-Vec3 getMaxSlopeHeight(Vec3 P1, Vec3 P2, Vec3 P3, osg::Node* terrain){
-  Vec3 slopeHeight;
-  slopeHeight.set(0.0,0.0,0.0);
-  double slope1=0;
-  double slope2=0;
-  double height=0;
-  Vec3 point;
-  double sample, slope;
-  double t;
-  for(int j=1; j<(STEP); j++){
-      t=(double)j/STEP;
-      point = P1*((1-t)*(1-t)) + P2 * (2*(1-t)*t) + P3*(t*t);
-      
-      //get Height of current point
-      sample = getHeight(terrain, point.x(), point.y()).z();
-      if(sample>height)
-	height=sample;
-	
-      //Calculate slope from P1
-      slope=(sample-P1.z())/t;
-      if(slope>slope1)
-	slope1=slope;
-      
-       //Calculate slope from P3
-      slope=(sample-P3.z())/(1-t);
-      if(slope>slope2)
-	slope2=slope;
-  }
-  slopeHeight.set(slope1, slope2, height);
-  return slopeHeight;
-}
-
 osg::Node* CreateScene() {
   Geometry* geo = new Geometry;
 
@@ -228,7 +141,7 @@ osg::Node* CreateScene() {
   }
 
   Vec3Array* points = new Vec3Array;
-  ReadPoints(points, "points.txt");
+  ReadPoints(points, "samples.txt");
   for (int i = 0; i < points->size(); ++i) {
     ShapeDrawable* s = new ShapeDrawable(new Sphere((*points)[i], 30.0));
     s->setColor(Vec4(1, .2, .2, 1));

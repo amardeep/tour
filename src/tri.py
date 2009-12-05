@@ -85,7 +85,7 @@ for i in range(1, len(TP) - 1):
   maxtheta = None
   while True:
     theta = int(j/2) * .05
-    if theta > math.pi/2: break
+    if theta > math.pi/4: break
     if j%2 == 0: theta *= -1
     j += 1
 
@@ -199,41 +199,23 @@ def sample_tour_2d(TP, hmap, min_dist):
 
 sample_tour_2d(TP, hmap, 50)
 
-# get slope of highest point from tp to tp1 along arc in 2d
-def get_slope(tp, tp1, reverse):
+
+def get_slope_index(tp, start, h1, h2):
+  points_slope = (h2 - h1)/(tp.dists_2d[-1] - tp.dists_2d[start])
   maxslope = None
-  for i in range(1, len(tp.samples_2d)):
-    if reverse is False:
-      s = tp.dists_2d[i]
-      h = tp.heights_2d[i]
-      ds = s
-      dh = h - tp.v.z
-    else:
-      s = tp.dists_2d[-(i+1)]
-      h = tp.heights_2d[-(i+1)]
-      ds = tp.dists_2d[-1] - s
-      dh = h - tp1.v.z
+  maxindex = None
+  for i in range(start + 1, len(tp.samples_2d)):
+    ds = tp.dists_2d[i] - tp.dists_2d[start]
+    dh = tp.heights_2d[i] - h1
     slope = dh/ds
     if maxslope is None or slope > maxslope:
       maxslope = slope
-  if reverse is False:
-    vertex_slope = (tp1.v.z - tp.v.z)/tp.dists_2d[-1]
-  else:
-    vertex_slope = (tp.v.z - tp1.v.z)/tp.dists_2d[-1]
-  return max(maxslope, 0.0, vertex_slope)
+      maxindex = i
 
-# get approx. (x, y) at arclength d
-def get_approx_xy(tp, d):
-  index = bisect.bisect(tp.dists_2d, d)
-  if index == 0: return tp.samples_2d[0]
-  if index >= len(tp.dists_2d): return tp.samples_2d[-1]
-  d1 = tp.dists_2d[index-1]
-  d2 = tp.dists_2d[index]
-  # TODO: maybe interpolate instead
-  if d - d1 < d2 - d:
-    return tp.samples_2d[index-1]
+  if maxslope > points_slope:
+    return maxindex
   else:
-    return tp.samples_2d[index]
+    return None
 
 def sample_tour_3d(TP, hmap, min_dist):
   for i in range(len(TP)-1):
@@ -242,41 +224,42 @@ def sample_tour_3d(TP, hmap, min_dist):
     tp.cp1.z = tp.cp2.z = tp.v.z
     tp1.cp1.z = tp1.cp2.z = tp1.v.z
 
-    # compute height and dist at which slopes from two endpoints meet
-    s1 = get_slope(tp, tp1, False)
-    s2 = get_slope(tp, tp1, True)
-    d0 = tp.dists_2d[-1]
     h1 = tp.v.z
     h2 = tp1.v.z
-    if s1 + s2 == 0:
-      print "s1 + s2 = 0"
-      d = d0/2
+    next_index = 0
+    tp.cp3ds = []
+    while True:
+      next_index = get_slope_index(tp, next_index, h1, h2)
+      if next_index is None:
+        break
+      p = tp.samples_2d[next_index]
+      h1 = tp.heights_2d[next_index] + ml
+      tp.cp3ds.append(gts.Point(p.x, p.y, h1))
+      print "cp %.2f %.2f %.2f" % (p.x, p.y, h1)
+
+    # compute heights of control points cp3 and cp5 interpolating from nearby
+    if len(tp.cp3ds) > 0:
+      cp = tp.cp3ds[0]
     else:
-      d = (s2*d0 + h2 - h1)/(s1 + s2)
-    if d < 2*ml: d = 2*ml
-    if d0 - d < 2*ml: d = d0 - 2*ml
-    h = s1*d + h1
-    print "3d tour: h(%.2f - %.2f - %.2f) d(0 %.2f %.2f)" % (h1, h, h2, d, d0)
-
-    # compute approx x,y location of above point
-    xy = get_approx_xy(tp, d)
-    tp.cp4.x, tp.cp4.y, tp.cp4.z = xy.x, xy.y, h + 2*ml
-
-    # compute heights of control points cp3 and cp5 interpolating from cp4
-    ds = dist_2d(tp.cp2, tp.cp4)
-    dz = tp.cp4.z - tp.v.z
+      cp = tp1.cp1
+    ds = dist_2d(tp.cp2, cp)
+    dz = cp.z - tp.v.z
     ds1 = dist_2d(tp.cp2, tp.cp3)
     dz1 = ds1/ds * dz
     tp.cp3.z = tp.v.z + dz1
 
-    ds = dist_2d(tp.cp4, tp1.cp1)
-    dz = tp.cp4.z - tp1.v.z
-    ds1 = dist_2d(tp.cp4, tp1.cp1)
+    if len(tp.cp3ds) > 0:
+      cp = tp.cp3ds[-1]
+    else:
+      cp = tp.cp2
+    ds = dist_2d(cp, tp1.cp1)
+    dz = cp.z - tp1.v.z
+    ds1 = dist_2d(tp.cp5, tp1.cp1)
     dz1 = ds1/ds * dz
     tp.cp5.z = tp1.v.z + dz1
 
     # bspline for segment between point i and i+1
-    v = [tp.cp1, tp.cp2, tp.cp3, tp.cp4, tp.cp5, tp1.cp1, tp1.cp2]
+    v = [tp.cp1, tp.cp2, tp.cp3] + tp.cp3ds + [tp.cp5, tp1.cp1, tp1.cp2]
     s = []
     sample_bspline(v, min_dist, s)
     tp.samples_3d = s
@@ -360,3 +343,10 @@ for s in np.arange(0, 1, .01):
     if not z is None:
       print >> fpoints, x, y, z
 fpoints.close()
+
+fsamples = open("samples.txt", "w")
+for i in range(len(TP) - 1):
+  tp = TP[i]
+  for s in tp.samples_3d:
+    print >> fsamples, s.x, s.y, s.z
+fsamples.close()
