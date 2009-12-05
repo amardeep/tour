@@ -22,30 +22,21 @@ hmap = HeightLookup(V, F)
 
 class TourPoint:
   def __init__(self, v):
-    self.v = v   # tour point
+    # specified tour point
+    self.v_orig = v
+    # actual tour point through which we pass near the specified one
+    self.v = gts.Point(v.x, v.y, v.z)
+
+ml = 200   # max turning radius
+Z_MARGIN_MIN = 10.0
+MARGIN_D = 40
 
 TP = []
 for v in T:
-  TP.append(TourPoint(v))
-
-ml = 1000   # max turning radius
-
-
-def get_max_height_line(hmap, p0, p1):
-  d = dist(p0, p1)
-  mh = hmap.get_height(gts.Point(p0.x, p0.y))
-  for i in range(0, 201):
-    p = interpolate_2d(p0, p1, i*d/200)
-    h = hmap.get_height(gts.Point(p.x, p.y))
-    mh = max(h, mh)
-  return mh
-
-
-def rotate_point_2d(p, theta):
-  np = Point()
-  np.x = p.x * math.cos(theta) - p.y * math.sin(theta)
-  np.y = p.x * math.sin(theta) + p.y * math.cos(theta)
-  return np
+  tp = TourPoint(v)
+  # add MARGIN_D to increase height
+  tp.v.z += MARGIN_D
+  TP.append(tp)
 
 
 # compute tangent direction and control points for interior points
@@ -56,20 +47,45 @@ for i in range(1, len(TP) - 1):
   p3 = TP[i+1].v
   tp.tangent = get_tangent(p1, p2, p3)
 
-  # for theta in np.arange(-math.pi/4, math.pi/4, .05):
-  #   tang = rotate_point_2d(tp.tangent, theta)
+  j = 1
+  maxdiff = None
+  maxtang = None
+  while True:
+    theta = int(j/2) * .05
+    if theta > math.pi/2: break
+    if j%2 == 0: theta *= -1
+    j += 1
 
-  # if i == 1: break
+    tang = rotate_point_2d(tp.tangent, theta)
+    np1 = Point()
+    np2 = Point()
+    insert_points(p2, tang, ml, np1, np2)
+    h =  get_max_height_line(hmap,
+                             interpolate_2d(np1, np2, -ml),
+                             interpolate_2d(np2, np1, -ml))
+    diff = tp.v.z + MARGIN_D - h
+    #print tp.v.z, diff
+    if diff > Z_MARGIN_MIN:
+      maxtang = tang
+      maxdiff = diff
+      break
 
+    if maxdiff is None or diff > maxdiff:
+      maxdiff = diff
+      maxtang = tang
+
+  if (maxdiff < 0):
+    print "no solution"
+    assert(False)
+  print maxdiff
+
+  tp.tangent = maxtang
   np1 = Point()
   np2 = Point()
-  insert_points(p2, tp.tangent, ml, np1, np2)
+  insert_points(p2, maxtang, ml, np1, np2)
   tp.prev = np1
   tp.next = np2
-  print get_max_height_line(hmap,
-                            interpolate_2d(np1, np2, -ml),
-                            interpolate_2d(np2, np1, -ml)),
-  print tp.v.z
+
 
 # compute tangent direction for end points of tour
 TP[0].tangent = get_vector_2d(TP[0].v, TP[1].prev)
@@ -173,7 +189,7 @@ def plot_heights(cp, min_dist, pat = 'b-'):
   return (x, y)
 
 
-#plot_bspline(v, 500, 'b,')
+plot_bspline(v, 100, 'b-')
 
 #plt.plot(TP[0].dists_2d, TP[0].heights_2d, 'r-')
 

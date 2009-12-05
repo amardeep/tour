@@ -179,3 +179,21 @@ def sample_bezier(p0, p1, p2, s1, s2, min_dist):
   V1 = sample_bezier(p0, p1, p2, s1, s, min_dist)
   V2 = sample_bezier(p0, p1, p2, s, s2, min_dist)
   return V1 + [s] + V2
+
+
+
+def get_max_height_line(hmap, p0, p1):
+  d = dist(p0, p1)
+  mh = hmap.get_height(gts.Point(p0.x, p0.y))
+  for i in range(0, 201):
+    p = interpolate_2d(p0, p1, i*d/200)
+    h = hmap.get_height(gts.Point(p.x, p.y))
+    mh = max(h, mh)
+  return mh
+
+
+def rotate_point_2d(p, theta):
+  np = Point()
+  np.x = p.x * math.cos(theta) - p.y * math.sin(theta)
+  np.y = p.x * math.sin(theta) + p.y * math.cos(theta)
+  return np
