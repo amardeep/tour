@@ -165,20 +165,24 @@ def dist(p1, p2):
   sqdist = (p1.x - p2.x)**2 + (p1.y - p2.y)**2 + (p1.z - p2.z)**2
   return math.sqrt(sqdist)
 
+def dist_2d(p1, p2):
+  sqdist = (p1.x - p2.x)**2 + (p1.y - p2.y)**2
+  return math.sqrt(sqdist)
+
 # sample bezier between sample points s1 and s2
-def sample_bezier(p0, p1, p2, s1, s2, min_dist):
+def sample_bezier(p0, p1, p2, s1, s2, min_dist, distfn = dist):
   t = (s1.t + s2.t) / 2.0
   s = bez(p0, p1, p2, t)
   s.t = t
 
-  d1 = dist(s1, s2)
-  d2 = dist(s1, s)
-  d3 = dist(s, s2)
+  d1 = distfn(s1, s2)
+  d2 = distfn(s1, s)
+  d3 = distfn(s, s2)
   if max(d1, d2, d3) < min_dist:
     return []
 
-  V1 = sample_bezier(p0, p1, p2, s1, s, min_dist)
-  V2 = sample_bezier(p0, p1, p2, s, s2, min_dist)
+  V1 = sample_bezier(p0, p1, p2, s1, s, min_dist, distfn)
+  V2 = sample_bezier(p0, p1, p2, s, s2, min_dist, distfn)
   return V1 + [s] + V2
 
 

@@ -3,6 +3,7 @@ import gts
 import numpy as np
 from util import *
 import matplotlib.pyplot as plt
+import bisect
 
 V = []  # terrain map vertices but in form of gts.Vertex array
 F_indices = []  # triangle vertex indices
@@ -28,16 +29,47 @@ class TourPoint:
     self.v = gts.Point(v.x, v.y, v.z)
 
 ml = 200   # max turning radius
-Z_MARGIN_MIN = 10.0
+Z_MARGIN_MIN = 100.0
 MARGIN_D = 40
+MARGIN_D = min(MARGIN_D, 50)
+
+use_margind_z = True
+use_margind_xy = True
+
+
+# compute point at which height is the lowest
+# by comparing height at the boundary of the 2dx2d square
+def best_point(hmap, v, d):
+  incr = max(d/100.0, 1)
+  minx = miny = minh = None
+  for x in np.arange(v.x-d, v.x+d, incr):
+    h1 = hmap.get_height(gts.Point(x, v.y-d))
+    h2 = hmap.get_height(gts.Point(x, v.y+d))
+    if minh is None or h1 < minh:
+      minx, miny, minh = x, v.y-d, h1
+    if minh is None or h2 < minh:
+      minx, miny, minh = x, v.y+d, h2
+  for y in np.arange(v.y-d, v.y+d, incr):
+    h1 = hmap.get_height(gts.Point(v.x-d, y))
+    h2 = hmap.get_height(gts.Point(v.x+d, y))
+    if minh is None or h1 < minh:
+      minx, miny, minh = v.x-d, y, h1
+    if minh is None or h2 < minh:
+      minx, miny, minh = v.x+d, y, h2
+  return (minx, miny, minh)
+
 
 TP = []
 for v in T:
   tp = TourPoint(v)
   # add MARGIN_D to increase height
-  tp.v.z += MARGIN_D
+  if use_margind_z:
+    tp.v.z += MARGIN_D
+  if use_margind_xy:
+    minx, miny, minh = best_point(hmap, v, MARGIN_D)
+    tp.v.x = minx
+    tp.v.y = miny
   TP.append(tp)
-
 
 # compute tangent direction and control points for interior points
 for i in range(1, len(TP) - 1):
@@ -50,6 +82,7 @@ for i in range(1, len(TP) - 1):
   j = 1
   maxdiff = None
   maxtang = None
+  maxtheta = None
   while True:
     theta = int(j/2) * .05
     if theta > math.pi/2: break
@@ -63,21 +96,23 @@ for i in range(1, len(TP) - 1):
     h =  get_max_height_line(hmap,
                              interpolate_2d(np1, np2, -ml),
                              interpolate_2d(np2, np1, -ml))
-    diff = tp.v.z + MARGIN_D - h
+    diff = tp.v.z - h
     #print tp.v.z, diff
     if diff > Z_MARGIN_MIN:
       maxtang = tang
       maxdiff = diff
+      maxtheta = theta
       break
 
     if maxdiff is None or diff > maxdiff:
       maxdiff = diff
       maxtang = tang
+      maxtheta = theta
 
   if (maxdiff < 0):
     print "no solution"
-    assert(False)
-  print maxdiff
+    #assert(False)
+  print maxdiff, maxtheta * 180 / math.pi
 
   tp.tangent = maxtang
   np1 = Point()
@@ -124,7 +159,7 @@ for tp in TP:
 # plt.axis([-20000, 20000, -20000, 20000])
 # plt.show()
 
-def sample_bspline(cp, min_dist, samples):
+def sample_bspline(cp, min_dist, samples, distfn = dist):
   for i in range(len(cp) - 2):
     p0 = mid_point(cp[i], cp[i+1])
     p1 = Point(cp[i+1].x, cp[i+1].y, cp[i+1].z)
@@ -132,7 +167,7 @@ def sample_bspline(cp, min_dist, samples):
     samples.append(p0)
     p0.t = 0
     p2.t = 1
-    samples.extend(sample_bezier(p0, p1, p2, p0, p2, min_dist))
+    samples.extend(sample_bezier(p0, p1, p2, p0, p2, min_dist, distfn))
   samples.append(mid_point(cp[-2], cp[-1]))
 
 def sample_tour_2d(TP, hmap, min_dist):
@@ -148,7 +183,9 @@ def sample_tour_2d(TP, hmap, min_dist):
     heights = tp.heights_2d = []
 
     # bspline for segment between point i and i+1
-    v = [tp.cp1, tp.cp2, tp.cp3, tp.cp5, tp1.cp1, tp1.cp2]
+    v = [tp.cp1, tp.cp2, tp.cp3, tp.cp4, tp.cp5, tp1.cp1, tp1.cp2]
+    # make a copy with z = 0
+    v = [gts.Point(a.x, a.y) for a in v]
     sample_bspline(v, min_dist, samples)
 
     d = 0
@@ -160,7 +197,107 @@ def sample_tour_2d(TP, hmap, min_dist):
       heights.append(
           hmap.get_height(gts.Point(samples[j].x, samples[j].y)))
 
-sample_tour_2d(TP, hmap, 200)
+sample_tour_2d(TP, hmap, 50)
+
+# get slope of highest point from tp to tp1 along arc in 2d
+def get_slope(tp, tp1, reverse):
+  maxslope = None
+  for i in range(1, len(tp.samples_2d)):
+    if reverse is False:
+      s = tp.dists_2d[i]
+      h = tp.heights_2d[i]
+      ds = s
+      dh = h - tp.v.z
+    else:
+      s = tp.dists_2d[-(i+1)]
+      h = tp.heights_2d[-(i+1)]
+      ds = tp.dists_2d[-1] - s
+      dh = h - tp1.v.z
+    slope = dh/ds
+    if maxslope is None or slope > maxslope:
+      maxslope = slope
+  if reverse is False:
+    vertex_slope = (tp1.v.z - tp.v.z)/tp.dists_2d[-1]
+  else:
+    vertex_slope = (tp.v.z - tp1.v.z)/tp.dists_2d[-1]
+  return max(maxslope, 0.0, vertex_slope)
+
+# get approx. (x, y) at arclength d
+def get_approx_xy(tp, d):
+  index = bisect.bisect(tp.dists_2d, d)
+  if index == 0: return tp.samples_2d[0]
+  if index >= len(tp.dists_2d): return tp.samples_2d[-1]
+  d1 = tp.dists_2d[index-1]
+  d2 = tp.dists_2d[index]
+  # TODO: maybe interpolate instead
+  if d - d1 < d2 - d:
+    return tp.samples_2d[index-1]
+  else:
+    return tp.samples_2d[index]
+
+def sample_tour_3d(TP, hmap, min_dist):
+  for i in range(len(TP)-1):
+    tp = TP[i]
+    tp1 = TP[i+1]
+    tp.cp1.z = tp.cp2.z = tp.v.z
+    tp1.cp1.z = tp1.cp2.z = tp1.v.z
+
+    # compute height and dist at which slopes from two endpoints meet
+    s1 = get_slope(tp, tp1, False)
+    s2 = get_slope(tp, tp1, True)
+    d0 = tp.dists_2d[-1]
+    h1 = tp.v.z
+    h2 = tp1.v.z
+    if s1 + s2 == 0:
+      print "s1 + s2 = 0"
+      d = d0/2
+    else:
+      d = (s2*d0 + h2 - h1)/(s1 + s2)
+    if d < 2*ml: d = 2*ml
+    if d0 - d < 2*ml: d = d0 - 2*ml
+    h = s1*d + h1
+    print "3d tour: h(%.2f - %.2f - %.2f) d(0 %.2f %.2f)" % (h1, h, h2, d, d0)
+
+    # compute approx x,y location of above point
+    xy = get_approx_xy(tp, d)
+    tp.cp4.x, tp.cp4.y, tp.cp4.z = xy.x, xy.y, h + 2*ml
+
+    # compute heights of control points cp3 and cp5 interpolating from cp4
+    ds = dist_2d(tp.cp2, tp.cp4)
+    dz = tp.cp4.z - tp.v.z
+    ds1 = dist_2d(tp.cp2, tp.cp3)
+    dz1 = ds1/ds * dz
+    tp.cp3.z = tp.v.z + dz1
+
+    ds = dist_2d(tp.cp4, tp1.cp1)
+    dz = tp.cp4.z - tp1.v.z
+    ds1 = dist_2d(tp.cp4, tp1.cp1)
+    dz1 = ds1/ds * dz
+    tp.cp5.z = tp1.v.z + dz1
+
+    # bspline for segment between point i and i+1
+    v = [tp.cp1, tp.cp2, tp.cp3, tp.cp4, tp.cp5, tp1.cp1, tp1.cp2]
+    s = []
+    sample_bspline(v, min_dist, s)
+    tp.samples_3d = s
+
+    # update heights and cum distances
+    d = 0
+    samples = tp.samples_3d
+    dists = tp.dists_3d = []
+    heights = tp.heights_3d = []
+
+    for j in range(len(samples)):
+      if j > 0:
+        d += dist(samples[j], samples[j-1])
+      dists.append(d)
+      heights.append(
+          hmap.get_height(gts.Point(samples[j].x, samples[j].y)))
+
+
+sample_tour_3d(TP, hmap, 50)
+
+
 
 def plot_bspline(cp, min_dist, pat = 'b-'):
   samples = []
@@ -169,7 +306,6 @@ def plot_bspline(cp, min_dist, pat = 'b-'):
   y = [-a.y for a in samples]
   plt.plot(x, y, pat)
   plt.axis([-20000, 20000, -20000, 20000])
-  plt.show()
 
 def plot_heights(cp, min_dist, pat = 'b-'):
   samples = []
@@ -185,30 +321,34 @@ def plot_heights(cp, min_dist, pat = 'b-'):
     y.append(hmap.get_height(gts.Point(samples[i].x, samples[i].y)))
   plt.plot(x, y, pat)
   plt.axis([0, 200000, -10, 1300])
-  plt.show()
   return (x, y)
 
 
+plt.figure(1)
 plot_bspline(v, 100, 'b-')
 
 #plt.plot(TP[0].dists_2d, TP[0].heights_2d, 'r-')
 
+plt.figure(2)
 cum_dist = 0
 for i in range(len(TP) - 1):
   tp = TP[i]
   plt.plot([cum_dist], [tp.v.z], 'rx')
-  x = [cum_dist + d for d in tp.dists_2d]
+  x = [cum_dist + d for d in tp.dists_3d]
   cum_dist += tp.dists_2d[-1]
-  plt.plot(x, tp.heights_2d, 'r-')
+  plt.plot(x, tp.heights_3d, 'r-')
+  y = [a.z for a in tp.samples_3d]
+  plt.plot(x, y, 'g-')
 plt.plot([cum_dist], [TP[-1].v.z], 'rx')
 
-(x, y) = plot_heights(v, 200, 'b-')
+#(x, y) = plot_heights(v, 200, 'b-')
 
 #v1 = [TP[0].cp1, TP[0].cp2, TP[0].cp3, TP[0].cp5, TP[1].cp1, TP[1].cp2]
 #plot_bspline(v1, 100, 'b-')
 #plot_heights(v1, 100, 'b-')
 
 
+plt.show()
 
 
 fpoints = open("points.txt", "w")
