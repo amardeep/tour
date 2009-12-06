@@ -78,12 +78,15 @@ def get_extents(points):
   return (pmin, pmax, span)
 
 class HeightLookup:
-  def __init__(self, vertices, faces):
+  def __init__(self, vertices, face_indices):
     self.V = vertices
-    self.F = faces
+    self.F = []
     self.n = 200  # divide into nxn buckets
     self.hmap = None
     (self.vmin, self.vmax, self.vspan) = get_extents(self.V)
+    # create gts.Triangle faces
+    make_gts_triangles(vertices, face_indices, self.F)
+    # create lookup map
     self.create_map()
 
   def create_map(self):
@@ -121,7 +124,7 @@ def get_vector_2d(p1, p2):
   x = p2.x - p1.x
   y = p2.y - p1.y
   l = math.sqrt(x*x + y*y)
-  return Point(x/l, y/l)
+  return gts.Point(x/l, y/l)
 
 # returns a vector which is average of
 # vector from P1 to P2 and P2 to P3 in 2D
@@ -131,7 +134,7 @@ def get_tangent(p1, p2, p3):
   x = (v1.x + v2.x) / 2.0
   y = (v1.y + v2.y) / 2.0
   l = math.sqrt(x*x + y*y)
-  return Point(x/l, y/l)
+  return gts.Point(x/l, y/l)
 
 
 # (v.x, v.y): tangent vector
@@ -145,7 +148,7 @@ def insert_points(p, v, l, p1, p2):
 
 
 def interpolate_2d(p1, p2, l):
-  p = Point()
+  p = gts.Point()
   v = get_vector_2d(p1, p2)
   p.x = p1.x + l*v.x
   p.y = p1.y + l*v.y
@@ -185,6 +188,17 @@ def sample_bezier(p0, p1, p2, s1, s2, min_dist, distfn = dist):
   V2 = sample_bezier(p0, p1, p2, s, s2, min_dist, distfn)
   return V1 + [s] + V2
 
+def sample_bspline(cp, min_dist, samples, distfn = dist):
+  for i in range(len(cp) - 2):
+    p0 = mid_point(cp[i], cp[i+1])
+    p1 = Point(cp[i+1].x, cp[i+1].y, cp[i+1].z)
+    p2 = mid_point(cp[i+1], cp[i+2])
+    samples.append(p0)
+    p0.t = 0
+    p2.t = 1
+    samples.extend(sample_bezier(p0, p1, p2, p0, p2, min_dist, distfn))
+  samples.append(mid_point(cp[-2], cp[-1]))
+
 
 
 def get_max_height_line(hmap, p0, p1):
@@ -198,7 +212,11 @@ def get_max_height_line(hmap, p0, p1):
 
 
 def rotate_point_2d(p, theta):
-  np = Point()
+  np = gts.Point()
   np.x = p.x * math.cos(theta) - p.y * math.sin(theta)
   np.y = p.x * math.sin(theta) + p.y * math.cos(theta)
   return np
+
+
+def str_point(v):
+  return "(%.2f %.2f %.2f)" % (v.x, v.y, v.z)
