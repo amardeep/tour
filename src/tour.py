@@ -207,17 +207,21 @@ class TourSegment:
     # maximum slope from start such that it doesn't hit the terrain
     maxslope = None
     maxindex = None
+    maxdh1 = None
     for i in range(start + 1, len(self.samples_2d)):
       ds = self.dists_2d[i] - self.dists_2d[start]
       dh = self.heights_2d[i] - h1
       slope = dh/ds
+      dh1 = points_slope * ds
       if maxslope is None or slope > maxslope:
         maxslope = slope
         maxindex = i
+        maxdh1 = dh1 - dh
 
-    if maxslope > points_slope:
+    if maxslope > points_slope or maxdh1 < 40:
       return maxindex
     else:
+      print ">>", maxdh1
       return None
 
 
@@ -409,6 +413,51 @@ def write_bez_cp(tour, fname="hw4.bez"):
       print >> fout, i, p2.x, p2.y, p2.z
   fout.close()
 
+
+def write_bspline_cp(tour, fname="hw4.spline"):
+  fout = open(fname, "w")
+  for i in range(len(tour.tss)):
+    ts = tour.tss[i]
+    for j in range(len(ts.cps_3d) - 2):
+      p1 = ts.cps_3d[j]
+      print >> fout, p1.x, p1.y, p1.z
+    p1 = tour.tss[-1].cps_3d[-2]
+    print >> fout, p1.x, p1.y, p1.z
+    p1 = tour.tss[-1].cps_3d[-1]
+    print >> fout, p1.x, p1.y, p1.z
+  fout.close()
+
+def write_stats(tour, fname="hw4.stats"):
+  tour_len = 0
+  num_cps = 0
+  min_height = None
+  for ts in tour.tss:
+    tour_len += ts.dists_3d[-1]
+    num_cps += len(ts.cps_3d) - 2
+    for s in ts.samples_3d:
+      h1 = s.z
+      h2 = hmap.get_height(gts.Point(s.x, s.y))
+      if min_height is None or h1-h2 < min_height:
+        min_height = h1-h2
+  num_cps += 2
+
+  f = open(fname, "w")
+  print >> f, "tour-length:", tour_len
+  print >> f, "min-height:", min_height
+  print >> f, "num-control-points", num_cps
+  print "tour-length:", tour_len
+  print "min-height:", min_height
+  print "num-control-points", num_cps
+
+
+def write_samples(tour, fname="hw4.sample"):
+  f = open(fname, "w")
+  for ts in tour.tss:
+    for s in ts.samples_3d:
+      print >> f, s.x, s.y, s.z
+  f.close()
+
+
 # global stuff
 
 vertices = []
@@ -428,6 +477,7 @@ hmap = HeightLookup(vertices, triangle_indices)
 # read tour points
 tour_points = []
 read_tour(tour_points, "hw4.tour")
+#read_tour(tour_points, "tour.tsp")
 
 # create and initialize tour instance
 tour = Tour(hmap, 10)
@@ -435,6 +485,10 @@ tour.set_tour_points(tour_points)
 tour.compute_tour()
 
 write_bez_cp(tour)
+write_bspline_cp(tour)
+write_stats(tour)
+write_samples(tour)
+
 
 if __name__ == "__main__":
 
