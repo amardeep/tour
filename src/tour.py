@@ -396,6 +396,19 @@ def plot_height_map(tour):
   plt.plot([cum_dist], [tour.tss[-1].tp2.v.z], 'rx')
 
 
+def write_bez_cp(tour, fname="hw4.bez"):
+  fout = open(fname, "w")
+  for i in range(len(tour.tss)):
+    ts = tour.tss[i]
+    for j in range(len(ts.cps_3d) - 2):
+      p0 = mid_point(ts.cps_3d[j], ts.cps_3d[j+1])
+      p1 = ts.cps_3d[j+1]
+      p2 = mid_point(ts.cps_3d[j+1], ts.cps_3d[j+2])
+      print >> fout, i, p0.x, p0.y, p0.z
+      print >> fout, i, p1.x, p1.y, p1.z
+      print >> fout, i, p2.x, p2.y, p2.z
+  fout.close()
+
 # global stuff
 
 vertices = []
@@ -414,12 +427,14 @@ hmap = HeightLookup(vertices, triangle_indices)
 
 # read tour points
 tour_points = []
-read_tour(tour_points, "tour.tsp")
+read_tour(tour_points, "hw4.tour")
 
 # create and initialize tour instance
 tour = Tour(hmap, 10)
 tour.set_tour_points(tour_points)
 tour.compute_tour()
+
+write_bez_cp(tour)
 
 if __name__ == "__main__":
 
