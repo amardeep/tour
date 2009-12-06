@@ -87,9 +87,6 @@ def best_direction(hmap, p1, p2, p3, ):
   return (maxtang, maxdiff)
 
 
-
-
-
 def plot_bspline(cp, min_dist, pat = 'b-'):
   samples = []
   sample_bspline(cp, min_dist, samples)
@@ -97,6 +94,7 @@ def plot_bspline(cp, min_dist, pat = 'b-'):
   y = [-a.y for a in samples]
   plt.plot(x, y, pat)
   plt.axis([-20000, 20000, -20000, 20000])
+
 
 def plot_heights(cp, min_dist, pat = 'b-'):
   samples = []
@@ -320,11 +318,14 @@ class Tour:
     pass
 
 
-  def add_tour_point(index, point):
+  def add_tour_point(self, index, point):
     if index < 1 or index > len(self.tps) - 1:
       # insert only between interior points
       print "Index out of range"
       return False
+
+    print dir(point)
+    print "Adding new point", index, point.x, point.y, point.z
 
     # create new point
     tp = TourPoint(self.hmap, point)
@@ -348,7 +349,7 @@ class Tour:
     return True
 
 
-  def delete_tour_point(index):
+  def delete_tour_point(self, index):
     if index < 1 or index > len(self.tps) - 1:
       # insert only between interior points
       print "Index out of range"
@@ -364,7 +365,7 @@ class Tour:
 
     return True
 
-  def reset_original_tour():
+  def reset_original_tour(self):
     self.tps = [o for o in self.original_tps]
     self.tss = [o for o in self.original_tss]
 
@@ -395,29 +396,32 @@ def plot_height_map(tour):
   plt.plot([cum_dist], [tour.tss[-1].tp2.v.z], 'rx')
 
 
+# global stuff
+
+vertices = []
+triangle_indices = []
+
+# read terrain info
+read_vertices(vertices, "hw4.vertices")
+read_triangles(triangle_indices, "hw4.faces")
+(vmin, vmax, vspan) = get_extents(vertices)
+print "Terrain extent: ", vmin, vmax
+print "Terrain span: ", vspan
+
+
+# create HeightLookup map
+hmap = HeightLookup(vertices, triangle_indices)
+
+# read tour points
+tour_points = []
+read_tour(tour_points, "hw4.tour")
+
+# create and initialize tour instance
+tour = Tour(hmap, 10)
+tour.set_tour_points(tour_points)
+tour.compute_tour()
+
 if __name__ == "__main__":
-  vertices = []
-  triangle_indices = []
-
-  # read terrain info
-  read_vertices(vertices, "hw4.vertices")
-  read_triangles(triangle_indices, "hw4.faces")
-  (vmin, vmax, vspan) = get_extents(vertices)
-  print "Terrain extent: ", vmin, vmax
-  print "Terrain span: ", vspan
-
-
-  # create HeightLookup map
-  hmap = HeightLookup(vertices, triangle_indices)
-
-  # read tour points
-  tour_points = []
-  read_tour(tour_points, "hw4.tour")
-
-  # create and initialize tour instance
-  tour = Tour(hmap, 10)
-  tour.set_tour_points(tour_points)
-  tour.compute_tour()
 
   plt.figure(1)
   plot_tour(tour, 'r-', True)
