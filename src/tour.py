@@ -232,7 +232,7 @@ class TourSegment:
       if next_index is None:
         break
       p = self.samples_2d[next_index]   # point in 2d to lift to a deboor cp
-      h1 = self.heights_2d[next_index] + ml  # height of that point
+      h1 = self.heights_2d[next_index] + ml*1.5  # height of that point
       cps.append(gts.Point(p.x, p.y, h1))
       print "cp %.2f %.2f %.2f" % (p.x, p.y, h1)
 
@@ -414,7 +414,7 @@ hmap = HeightLookup(vertices, triangle_indices)
 
 # read tour points
 tour_points = []
-read_tour(tour_points, "hw4.tour")
+read_tour(tour_points, "tour.tsp")
 
 # create and initialize tour instance
 tour = Tour(hmap, 10)
