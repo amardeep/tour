@@ -7,8 +7,8 @@ import bisect
 
 
 # config params
-ml = 200   # max turning radius
-Z_MARGIN_MIN = 100.0
+ml = 400   # max turning radius
+Z_MARGIN_MIN = 50.0
 MARGIN_D = 40
 MARGIN_D = min(MARGIN_D, 50)
 
@@ -66,8 +66,8 @@ def best_direction(hmap, p1, p2, p3, ):
     np2 = Point()
     insert_points(p2, tang, ml, np1, np2)
     h =  get_max_height_line(hmap,
-                             interpolate_2d(np1, np2, -ml),
-                             interpolate_2d(np2, np1, -ml))
+                             interpolate_2d(np1, np2, -ml/8),
+                             interpolate_2d(np2, np1, -ml/8))
     diff = p2.z - h
     if diff > Z_MARGIN_MIN:
       maxtang = tang
@@ -236,7 +236,7 @@ class TourSegment:
       if next_index is None:
         break
       p = self.samples_2d[next_index]   # point in 2d to lift to a deboor cp
-      h1 = self.heights_2d[next_index] + ml*1.5  # height of that point
+      h1 = self.heights_2d[next_index] + 300  # height of that point
       cps.append(gts.Point(p.x, p.y, h1))
       print "cp %.2f %.2f %.2f" % (p.x, p.y, h1)
 
@@ -386,6 +386,25 @@ def plot_tour(tour, pat = 'r-', samples_2d = True):
     y.extend([-o.y for o in samples])
   plt.plot(x, y, pat)
   plt.axis([-20000, 20000, -20000, 20000])
+
+def plot_seg(tour, seg = 1, pat = 'r-', samples_2d = True):
+  x = []
+  y = []
+  ts = tour.tss[seg]
+  x = [o.x for o in ts.cps_2d]
+  y = [o.y for o in ts.cps_2d]
+  plt.plot(x, y, "g:")
+  plt.plot(x, y, "bx")
+  x = [o.x for o in ts.samples_2d]
+  y = [o.y for o in ts.samples_2d]
+  plt.plot(x, y, pat)
+  x = [ts.tp1.v.x, ts.tp2.v.x]
+  y = [ts.tp1.v.y, ts.tp2.v.y]
+  plt.plot(x, y, "bo")
+  (vmin, vmax, vspan) = get_extents(ts.cps_2d)
+  plt.axis([vmin.x - vspan.x*.2, vmax.x + vspan.x*.2,
+            vmin.y - vspan.y*.2, vmax.y + vspan.y*.2])
+  plt.show()
 
 
 def plot_height_map(tour):
